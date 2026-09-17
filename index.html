@@ -51,9 +51,31 @@
         .pin-pop {
             animation: pinPulse 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
+
+        /* Animação do Toast */
+        @keyframes toastFade {
+            0% { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            15% { opacity: 1; transform: translateY(0) scale(1); }
+            85% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-20px) scale(0.95); }
+        }
+
+        .toast-animate {
+            animation: toastFade 2s ease forwards;
+        }
     </style>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- TOAST DE NOTIFICAÇÃO (Cadastrado com sucesso) -->
+    <div id="toastNotification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden pointer-events-none">
+        <div class="bg-emerald-600 text-white font-semibold px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-emerald-500/30 backdrop-blur-md">
+            <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-sm">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <span id="toastMessage">Cadastrado com sucesso!</span>
+        </div>
+    </div>
 
     <!-- TELA DE PIN / LOGIN -->
     <div id="authScreen" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
@@ -218,15 +240,7 @@
 
                 <!-- PAINEL DE CADASTRO DE CONSERTOS -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Identificação / Cliente</label>
-                            <input type="text" id="fieldRepairClient" placeholder="" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Descrição / Defeito</label>
-                            <input type="text" id="fieldRepairDetails" placeholder="" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
-                        </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Valor Conserto (R$)</label>
                             <input type="number" id="fieldRepairAmount" step="0.01" placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
@@ -404,6 +418,11 @@
                 </div>
             </div>
 
+            <!-- CARDS DE RESUMO DO FILTRO DO MODAL -->
+            <div id="modalSummaryCards" class="px-5 pt-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <!-- Conteúdo injetado dinamicamente via JS dependendo de Vendas ou Consertos -->
+            </div>
+
             <!-- Modal Body (Tabela com rolagem) -->
             <div class="flex-1 overflow-y-auto p-4 sm:p-6">
                 <div class="bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -414,8 +433,8 @@
                                     <!-- Cabeçalhos injetados via JS -->
                                 </tr>
                             </thead>
-                            <tbody id="modalTableBody" class="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
-                                <!-- Dados injetados via JS -->
+                            <tbody id="modalTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60 text-sm">
+                                <!-- Linhas injetadas via JS -->
                             </tbody>
                         </table>
                     </div>
@@ -424,68 +443,103 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT DO SISTEMA -->
+    <!-- SCRIPT DO SISTEMA -->
     <script>
-        const CORRECT_PIN_DEFAULT = "1234";
-        let currentPin = localStorage.getItem("macmura_pin") || CORRECT_PIN_DEFAULT;
+        // Variáveis globais do sistema
+        let currentModalType = 'sales';
+        let salesData = JSON.parse(localStorage.getItem('macmura_sales') || '[]');
+        let repairsData = JSON.parse(localStorage.getItem('macmura_repairs') || '[]');
+        let userPin = localStorage.getItem('macmura_pin') || '1234';
 
-        // PIN Inputs Handler
-        const pinDigits = document.querySelectorAll('.pin-digit');
-        pinDigits.forEach((digit, index) => {
-            digit.addEventListener('input', (e) => {
-                const val = e.target.value;
-                if (val && index < pinDigits.length - 1) {
-                    pinDigits[index + 1].focus();
-                }
+        // Inicialização ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            const saleDateEl = document.getElementById('fieldSaleDate');
+            const repairDateEl = document.getElementById('fieldRepairDate');
+            if (saleDateEl) saleDateEl.value = today;
+            if (repairDateEl) repairDateEl.value = today;
+
+            const pinInputs = document.querySelectorAll('.pin-digit');
+            pinInputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    if (value && index < pinInputs.length - 1) {
+                        pinInputs[index + 1].focus();
+                    }
+                    if (Array.from(pinInputs).every(inp => inp.value !== '')) {
+                        handlePinSubmit();
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !input.value && index > 0) {
+                        pinInputs[index - 1].focus();
+                    }
+                });
             });
-            digit.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !digit.value && index > 0) {
-                    pinDigits[index - 1].focus();
-                }
-            });
+
+            updateSalesSummary();
+            updateRepairsSummary();
         });
 
-        function handlePinSubmit() {
-            let enteredPin = "";
-            pinDigits.forEach(d => enteredPin += d.value);
+        // Função para mostrar Toast verde elegante por 2 segundos
+        function showToast(message = "Cadastrado com sucesso!") {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMessage');
+            toastMsg.innerText = message;
+            
+            toast.classList.remove('hidden');
+            toast.classList.remove('toast-animate');
+            void toast.offsetWidth;
+            toast.classList.add('toast-animate');
 
-            if (enteredPin === currentPin) {
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('toast-animate');
+            }, 2000);
+        }
+
+        // Autenticação por PIN
+        function handlePinSubmit() {
+            const pinInputs = document.querySelectorAll('.pin-digit');
+            let enteredPin = '';
+            pinInputs.forEach(input => enteredPin += input.value);
+
+            if (enteredPin === userPin) {
                 document.getElementById('authScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
-                initApp();
             } else {
-                const pinMsg = document.getElementById('pinMsg');
-                pinMsg.textContent = "PIN incorreto! Tente novamente.";
-                pinMsg.classList.add('text-red-400');
-                pinDigits.forEach(d => {
-                    d.value = "";
-                    d.classList.add('pin-pop', 'border-red-500');
-                    setTimeout(() => d.classList.remove('pin-pop', 'border-red-500'), 300);
+                pinInputs.forEach(input => {
+                    input.value = '';
+                    input.classList.add('pin-pop', 'border-red-500');
+                    setTimeout(() => input.classList.remove('pin-pop', 'border-red-500'), 300);
                 });
-                pinDigits[0].focus();
+                pinInputs[0].focus();
+                document.getElementById('pinMsg').innerText = 'PIN incorreto! Tente novamente:';
+                document.getElementById('pinMsg').classList.add('text-red-400');
             }
         }
 
         function lockApp() {
             document.getElementById('mainApp').classList.add('hidden');
             document.getElementById('authScreen').classList.remove('hidden');
-            pinDigits.forEach(d => d.value = "");
-            pinDigits[0].focus();
-            const pinMsg = document.getElementById('pinMsg');
-            pinMsg.textContent = "Insira seu PIN de acesso:";
-            pinMsg.classList.remove('text-red-400');
+            const pinInputs = document.querySelectorAll('.pin-digit');
+            pinInputs.forEach(input => input.value = '');
+            pinInputs[0].focus();
+            document.getElementById('pinMsg').innerText = 'Insira seu PIN de acesso:';
+            document.getElementById('pinMsg').classList.remove('text-red-400');
         }
 
         // Navegação de Abas
-        function switchTab(tabName) {
+        function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
 
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
                 btn.classList.add('text-slate-600', 'dark:text-slate-400');
             });
-            const activeNav = document.getElementById(`nav-${tabName}`);
+            const activeNav = document.getElementById(`nav-${tabId}`);
             if (activeNav) {
                 activeNav.classList.add('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
                 activeNav.classList.remove('text-slate-600', 'dark:text-slate-400');
@@ -495,60 +549,144 @@
                 btn.classList.remove('text-brand-500', 'font-medium');
                 btn.classList.add('text-slate-500', 'dark:text-slate-400');
             });
-            const activeMob = document.getElementById(`mob-${tabName}`);
+            const activeMob = document.getElementById(`mob-${tabId}`);
             if (activeMob) {
                 activeMob.classList.add('text-brand-500', 'font-medium');
                 activeMob.classList.remove('text-slate-500', 'dark:text-slate-400');
             }
         }
 
-        // Tema Escuro / Claro
+        // Alternar Tema Dark/Light
         function toggleDarkMode() {
             const html = document.documentElement;
+            html.classList.toggle('dark');
             const icon = document.getElementById('themeIcon');
             if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                icon.className = "fa-solid fa-sun";
+                icon.className = 'fa-solid fa-moon';
             } else {
-                html.classList.add('dark');
-                icon.className = "fa-solid fa-moon";
+                icon.className = 'fa-solid fa-sun';
             }
         }
 
-        // Inicialização de Dados e Aplicação
-        function initApp() {
-            const today = new Date().toISOString().split('T')[0];
-            const dateSale = document.getElementById('fieldSaleDate');
-            const dateRepair = document.getElementById('fieldRepairDate');
-            if(dateSale && !dateSale.value) dateSale.value = today;
-            if(dateRepair && !dateRepair.value) dateRepair.value = today;
+        // Gestão de Vendas
+        function saveSaleRecord() {
+            const productCost = parseFloat(document.getElementById('fieldProductCost').value) || 0;
+            const repairSpent = parseFloat(document.getElementById('fieldRepairSpent').value) || 0;
+            const saleAmount = parseFloat(document.getElementById('fieldSaleAmount').value) || 0;
+            const payment = document.getElementById('fieldSalePayment').value;
+            const date = document.getElementById('fieldSaleDate').value || new Date().toISOString().split('T')[0];
 
-            renderSalesSummary();
-            renderRepairsSummary();
+            if (saleAmount <= 0) {
+                alert('Por favor, informe o valor da venda.');
+                return;
+            }
+
+            const profit = saleAmount - (productCost + repairSpent);
+            const newSale = {
+                id: Date.now(),
+                productCost,
+                repairSpent,
+                saleAmount,
+                payment,
+                date,
+                profit
+            };
+
+            salesData.push(newSale);
+            localStorage.setItem('macmura_sales', JSON.stringify(salesData));
+
+            document.getElementById('fieldProductCost').value = '';
+            document.getElementById('fieldRepairSpent').value = '';
+            document.getElementById('fieldSaleAmount').value = '';
+
+            updateSalesSummary();
+            showToast('Cadastrado com sucesso!');
         }
 
-        // --- CONTROLE DO MODAL DE HISTÓRICO ---
-        let currentModalType = 'sales';
+        function updateSalesSummary() {
+            let totalProd = 0;
+            let totalSpent = 0;
+            let totalAmount = 0;
+            let totalProfit = 0;
 
+            salesData.forEach(item => {
+                totalProd += item.productCost;
+                totalSpent += item.repairSpent;
+                totalAmount += item.saleAmount;
+                totalProfit += item.profit;
+            });
+
+            document.getElementById('totalSalesProductCost').innerText = formatCurrency(totalProd);
+            document.getElementById('totalSalesRepairSpent').innerText = formatCurrency(totalSpent);
+            document.getElementById('totalSalesAmount').innerText = formatCurrency(totalAmount);
+            document.getElementById('totalSalesProfit').innerText = formatCurrency(totalProfit);
+        }
+
+        // Gestão de Consertos
+        function saveRepairRecord() {
+            const repairAmount = parseFloat(document.getElementById('fieldRepairAmount').value) || 0;
+            const repairCost = parseFloat(document.getElementById('fieldRepairCost').value) || 0;
+            const status = document.getElementById('fieldRepairStatus').value;
+            const date = document.getElementById('fieldRepairDate').value || new Date().toISOString().split('T')[0];
+
+            if (repairAmount <= 0) {
+                alert('Por favor, informe o valor do conserto.');
+                return;
+            }
+
+            const profit = repairAmount - repairCost;
+            const newRepair = {
+                id: Date.now(),
+                repairAmount,
+                repairCost,
+                status,
+                date,
+                profit
+            };
+
+            repairsData.push(newRepair);
+            localStorage.setItem('macmura_repairs', JSON.stringify(repairsData));
+
+            document.getElementById('fieldRepairAmount').value = '';
+            document.getElementById('fieldRepairCost').value = '';
+
+            updateRepairsSummary();
+            showToast('Cadastrado com sucesso!');
+        }
+
+        function updateRepairsSummary() {
+            let totalAmount = 0;
+            let totalCost = 0;
+            let totalProfit = 0;
+
+            repairsData.forEach(item => {
+                totalAmount += item.repairAmount;
+                totalCost += item.repairCost;
+                totalProfit += item.profit;
+            });
+
+            document.getElementById('totalRepairsAmount').innerText = formatCurrency(totalAmount);
+            document.getElementById('totalRepairsCost').innerText = formatCurrency(totalCost);
+            document.getElementById('totalRepairsProfit').innerText = formatCurrency(totalProfit);
+        }
+
+        // Modal de Histórico
         function openHistoryModal(type) {
             currentModalType = type;
             const modal = document.getElementById('historyModal');
-            const title = document.getElementById('modalTitle');
-            const icon = document.getElementById('modalHeaderIcon');
+            const titleEl = document.getElementById('modalTitle');
+            const headerIcon = document.getElementById('modalHeaderIcon');
 
             if (type === 'sales') {
-                title.textContent = "Histórico de Vendas";
-                icon.className = "fa-solid fa-cash-register";
+                titleEl.innerText = 'Histórico de Vendas';
+                headerIcon.className = 'fa-solid fa-cash-register';
             } else {
-                title.textContent = "Histórico de Consertos";
-                icon.className = "fa-solid fa-screwdriver-wrench";
+                titleEl.innerText = 'Histórico de Consertos';
+                headerIcon.className = 'fa-solid fa-screwdriver-wrench';
             }
 
-            document.getElementById('modalFilterMonth').value = 'all';
-            document.getElementById('modalFilterYear').value = 'all';
-
-            renderModalTable();
             modal.classList.remove('hidden');
+            renderModalTable();
         }
 
         function closeHistoryModal() {
@@ -556,130 +694,199 @@
         }
 
         function renderModalTable() {
-            const monthFilter = document.getElementById('modalFilterMonth').value;
-            const yearFilter = document.getElementById('modalFilterYear').value;
-            const storageKey = currentModalType === 'sales' ? 'macmura_sales' : 'macmura_repairs';
-            let data = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const headersEl = document.getElementById('modalTableHeaders');
+            const bodyEl = document.getElementById('modalTableBody');
+            const summaryCardsEl = document.getElementById('modalSummaryCards');
+            const filterMonth = document.getElementById('modalFilterMonth').value;
+            const filterYear = document.getElementById('modalFilterYear').value;
 
-            let filtered = data.filter(item => {
-                const [year, month] = item.date.split('-');
-                const matchMonth = (monthFilter === 'all' || month === monthFilter);
-                const matchYear = (yearFilter === 'all' || year === yearFilter);
+            bodyEl.innerHTML = '';
+
+            let data = currentModalType === 'sales' ? salesData : repairsData;
+
+            // Filtrar dados por mês e ano selecionados
+            const filteredData = data.filter(item => {
+                if (!item.date) return false;
+                const parts = item.date.split('-');
+                const itemYear = parts[0];
+                const itemMonth = parts[1];
+
+                const matchMonth = (filterMonth === 'all' || itemMonth === filterMonth);
+                const matchYear = (filterYear === 'all' || itemYear === filterYear);
                 return matchMonth && matchYear;
             });
 
-            const headersContainer = document.getElementById('modalTableHeaders');
-            const tbody = document.getElementById('modalTableBody');
-            tbody.innerHTML = '';
-
+            // Calcular totais filtrados para o topo do modal
             if (currentModalType === 'sales') {
-                headersContainer.innerHTML = `
-                    <th class="p-3.5 font-semibold">Data</th>
-                    <th class="p-3.5 font-semibold">Pagamento</th>
-                    <th class="p-3.5 font-semibold text-right">Valor Produto</th>
-                    <th class="p-3.5 font-semibold text-right">Gasto Peças</th>
-                    <th class="p-3.5 font-semibold text-right">Valor Venda</th>
-                    <th class="p-3.5 font-semibold text-right">Lucro</th>
-                    <th class="p-3.5 font-semibold text-center">Ações</th>
+                let fProdCost = 0;
+                let fRepairSpent = 0;
+                let fSaleAmount = 0;
+                let fProfit = 0;
+
+                filteredData.forEach(item => {
+                    fProdCost += item.productCost;
+                    fRepairSpent += item.repairSpent;
+                    fSaleAmount += item.saleAmount;
+                    fProfit += item.profit;
+                });
+
+                summaryCardsEl.innerHTML = `
+                    <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <p class="text-[11px] text-slate-400 font-medium">Gasto Produtos</p>
+                        <p class="text-base font-bold text-red-400 mt-0.5">${formatCurrency(fProdCost)}</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <p class="text-[11px] text-slate-400 font-medium">Gasto Peças</p>
+                        <p class="text-base font-bold text-red-400 mt-0.5">${formatCurrency(fRepairSpent)}</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <p class="text-[11px] text-slate-400 font-medium">Total Vendas</p>
+                        <p class="text-base font-bold text-brand-500 mt-0.5">${formatCurrency(fSaleAmount)}</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800 border-l-4 border-l-brand-500">
+                        <p class="text-[11px] text-slate-400 font-medium">Lucro Total do Período</p>
+                        <p class="text-base font-bold text-emerald-400 mt-0.5">${formatCurrency(fProfit)}</p>
+                    </div>
                 `;
-            } else {
-                headersContainer.innerHTML = `
-                    <th class="p-3.5 font-semibold">Data</th>
-                    <th class="p-3.5 font-semibold">Identificação</th>
-                    <th class="p-3.5 font-semibold">Status</th>
-                    <th class="p-3.5 font-semibold text-right">Valor Conserto</th>
-                    <th class="p-3.5 font-semibold text-right">Gasto Peça</th>
-                    <th class="p-3.5 font-semibold text-right">Lucro</th>
-                    <th class="p-3.5 font-semibold text-center">Ações</th>
+
+                headersEl.innerHTML = `
+                    <th class="p-3">Data</th>
+                    <th class="p-3">Pgto</th>
+                    <th class="p-3">Custo Prod.</th>
+                    <th class="p-3">Gasto Peças</th>
+                    <th class="p-3">Venda</th>
+                    <th class="p-3">Lucro</th>
+                    <th class="p-3 text-center">Ações</th>
                 `;
-            }
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">Nenhum registro encontrado.</td></tr>`;
-                return;
-            }
-
-            filtered.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-100 dark:hover:bg-slate-800/40 transition";
-
-                if (currentModalType === 'sales') {
-                    const profit = item.saleAmount - (item.productCost + item.repairSpent);
-                    tr.innerHTML = `
-                        <td class="p-3.5">${item.date.split('-').reverse().join('/')}</td>
-                        <td class="p-3.5"><span class="px-2 py-1 bg-slate-200 dark:bg-slate-800 rounded-lg text-xs font-medium">${item.payment}</span></td>
-                        <td class="p-3.5 text-right text-red-400">R$ ${item.productCost.toFixed(2)}</td>
-                        <td class="p-3.5 text-right text-red-400">R$ ${item.repairSpent.toFixed(2)}</td>
-                        <td class="p-3.5 text-right font-semibold text-brand-500">R$ ${item.saleAmount.toFixed(2)}</td>
-                        <td class="p-3.5 text-right font-bold text-emerald-400">R$ ${profit.toFixed(2)}</td>
-                        <td class="p-3.5 text-center">
-                            <button onclick="deleteModalItem(${item.id})" class="p-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    `;
-                } else {
-                    const profit = item.amount - item.cost;
-                    let statusColor = "bg-amber-500/10 text-amber-400";
-                    if(item.status === 'Concluído') statusColor = "bg-brand-500/10 text-brand-500";
-                    if(item.status === 'Aguardando Peça') statusColor = "bg-blue-500/10 text-blue-400";
-
-                    tr.innerHTML = `
-                        <td class="p-3.5">${item.date.split('-').reverse().join('/')}</td>
-                        <td class="p-3.5 font-medium">${item.client} <br><span class="text-xs text-slate-400">${item.details}</span></td>
-                        <td class="p-3.5"><span class="px-2 py-1 ${statusColor} rounded-lg text-xs font-medium">${item.status}</span></td>
-                        <td class="p-3.5 text-right font-semibold text-brand-500">R$ ${item.amount.toFixed(2)}</td>
-                        <td class="p-3.5 text-right text-red-400">R$ ${item.cost.toFixed(2)}</td>
-                        <td class="p-3.5 text-right font-bold text-emerald-400">R$ ${profit.toFixed(2)}</td>
-                        <td class="p-3.5 text-center">
-                            <button onclick="deleteModalItem(${item.id})" class="p-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    `;
+                if (filteredData.length === 0) {
+                    bodyEl.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Nenhum registro encontrado para este período.</td></tr>`;
+                    return;
                 }
-                tbody.appendChild(tr);
-            });
-        }
 
-        function deleteModalItem(id) {
-            if(confirm('Deseja realmente excluir este registro?')) {
-                const storageKey = currentModalType === 'sales' ? 'macmura_sales' : 'macmura_repairs';
-                let data = JSON.parse(localStorage.getItem(storageKey) || '[]');
-                data = data.filter(item => item.id !== id);
-                localStorage.setItem(storageKey, JSON.stringify(data));
-                
-                renderModalTable();
-                renderSalesSummary();
-                renderRepairsSummary();
+                filteredData.sort((a, b) => b.id - a.id).forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-slate-200 dark:border-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/30';
+                    tr.innerHTML = `
+                        <td class="p-3">${formatDate(item.date)}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-xs bg-slate-200 dark:bg-slate-800">${item.payment}</span></td>
+                        <td class="p-3 text-red-400">${formatCurrency(item.productCost)}</td>
+                        <td class="p-3 text-red-400">${formatCurrency(item.repairSpent)}</td>
+                        <td class="p-3 font-semibold">${formatCurrency(item.saleAmount)}</td>
+                        <td class="p-3 font-bold text-emerald-400">${formatCurrency(item.profit)}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="deleteRecord('sales', ${item.id})" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition inline-flex items-center justify-center">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </td>
+                    `;
+                    bodyEl.appendChild(tr);
+                });
+
+            } else {
+                let fRepairAmount = 0;
+                let fRepairCost = 0;
+                let fProfit = 0;
+
+                filteredData.forEach(item => {
+                    fRepairAmount += item.repairAmount;
+                    fRepairCost += item.repairCost;
+                    fProfit += item.profit;
+                });
+
+                summaryCardsEl.innerHTML = `
+                    <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800 sm:col-span-1">
+                        <p class="text-[11px] text-slate-400 font-medium">Total Consertos (Receita)</p>
+                        <p class="text-base font-bold text-brand-500 mt-0.5">${formatCurrency(fRepairAmount)}</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800 sm:col-span-1">
+                        <p class="text-[11px] text-slate-400 font-medium">Total Gasto com Peças</p>
+                        <p class="text-base font-bold text-red-400 mt-0.5">${formatCurrency(fRepairCost)}</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800 sm:col-span-2 border-l-4 border-l-brand-500">
+                        <p class="text-[11px] text-slate-400 font-medium">Lucro Líquido do Período</p>
+                        <p class="text-base font-bold text-emerald-400 mt-0.5">${formatCurrency(fProfit)}</p>
+                    </div>
+                `;
+
+                headersEl.innerHTML = `
+                    <th class="p-3">Data</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3">Valor Conserto</th>
+                    <th class="p-3">Gasto Peça</th>
+                    <th class="p-3">Lucro</th>
+                    <th class="p-3 text-center">Ações</th>
+                `;
+
+                if (filteredData.length === 0) {
+                    bodyEl.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Nenhum registro encontrado para este período.</td></tr>`;
+                    return;
+                }
+
+                filteredData.sort((a, b) => b.id - a.id).forEach(item => {
+                    let statusColor = 'bg-brand-500/10 text-brand-500';
+                    if (item.status === 'Em Andamento') statusColor = 'bg-yellow-500/10 text-yellow-500';
+                    if (item.status === 'Aguardando Peça') statusColor = 'bg-blue-500/10 text-blue-500';
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-slate-200 dark:border-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/30';
+                    tr.innerHTML = `
+                        <td class="p-3">${formatDate(item.date)}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-xs ${statusColor}">${item.status}</span></td>
+                        <td class="p-3 font-semibold">${formatCurrency(item.repairAmount)}</td>
+                        <td class="p-3 text-red-400">${formatCurrency(item.repairCost)}</td>
+                        <td class="p-3 font-bold text-emerald-400">${formatCurrency(item.profit)}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="deleteRecord('repairs', ${item.id})" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition inline-flex items-center justify-center">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </td>
+                    `;
+                    bodyEl.appendChild(tr);
+                });
             }
         }
 
-        // --- EXPORTAÇÃO CSV E PDF ---
+        function deleteRecord(type, id) {
+            if (!confirm('Deseja realmente excluir este registro?')) return;
+
+            if (type === 'sales') {
+                salesData = salesData.filter(item => item.id !== id);
+                localStorage.setItem('macmura_sales', JSON.stringify(salesData));
+                updateSalesSummary();
+            } else {
+                repairsData = repairsData.filter(item => item.id !== id);
+                localStorage.setItem('macmura_repairs', JSON.stringify(repairsData));
+                updateRepairsSummary();
+            }
+            renderModalTable();
+        }
+
+        // Exportação de Dados
         function exportToCSV() {
-            const storageKey = currentModalType === 'sales' ? 'macmura_sales' : 'macmura_repairs';
-            let data = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            
-            if(data.length === 0) {
+            let data = currentModalType === 'sales' ? salesData : repairsData;
+            if (data.length === 0) {
                 alert('Não há dados para exportar.');
                 return;
             }
 
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            let csvContent = "data:text/csv;charset=utf-8,";
             if (currentModalType === 'sales') {
-                csvContent += "Data,Pagamento,Valor Produto,Gasto Pecas,Valor Venda,Lucro\n";
+                csvContent += "Data,Forma de Pagamento,Custo Produto,Gasto Pecas,Valor Venda,Lucro\r\n";
                 data.forEach(item => {
-                    const profit = item.saleAmount - (item.productCost + item.repairSpent);
-                    csvContent += `"${item.date}","${item.payment}",${item.productCost},${item.repairSpent},${item.saleAmount},${profit}\n`;
+                    csvContent += `${item.date},${item.payment},${item.productCost},${item.repairSpent},${item.saleAmount},${item.profit}\r\n`;
                 });
             } else {
-                csvContent += "Data,Identificacao,Detalhes,Status,Valor Conserto,Gasto Peca,Lucro\n";
+                csvContent += "Data,Status,Valor Conserto,Gasto Peca,Lucro\r\n";
                 data.forEach(item => {
-                    const profit = item.amount - item.cost;
-                    csvContent += `"${item.date}","${item.client}","${item.details}","${item.status}",${item.amount},${item.cost},${profit}\n`;
+                    csvContent += `${item.date},${item.status},${item.repairAmount},${item.repairCost},${item.profit}\r\n`;
                 });
             }
 
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `relatorio_${currentModalType}_macmura.csv`);
+            link.setAttribute("download", `historico_${currentModalType}_macmura.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -689,145 +896,73 @@
             window.print();
         }
 
-        // --- VENDAS ---
-        let salesData = JSON.parse(localStorage.getItem('macmura_sales') || '[]');
-
-        function saveSaleRecord() {
-            const productCost = parseFloat(document.getElementById('fieldProductCost').value) || 0;
-            const repairSpent = parseFloat(document.getElementById('fieldRepairSpent').value) || 0;
-            const saleAmount = parseFloat(document.getElementById('fieldSaleAmount').value) || 0;
-            const payment = document.getElementById('fieldSalePayment').value;
-            const date = document.getElementById('fieldSaleDate').value;
-
-            if (!date || saleAmount <= 0) {
-                alert('Preencha a data e o valor de venda corretamente.');
-                return;
-            }
-
-            const record = { id: Date.now(), productCost, repairSpent, saleAmount, payment, date };
-            salesData.push(record);
-            localStorage.setItem('macmura_sales', JSON.stringify(salesData));
-
-            document.getElementById('fieldProductCost').value = '';
-            document.getElementById('fieldRepairSpent').value = '';
-            document.getElementById('fieldSaleAmount').value = '';
-
-            renderSalesSummary();
-        }
-
-        function renderSalesSummary() {
-            salesData = JSON.parse(localStorage.getItem('macmura_sales') || '[]');
-            let tProdCost = 0, tRepSpent = 0, tAmount = 0, tProfit = 0;
-
-            salesData.forEach(item => {
-                tProdCost += item.productCost;
-                tRepSpent += item.repairSpent;
-                tAmount += item.saleAmount;
-                tProfit += (item.saleAmount - (item.productCost + item.repairSpent));
-            });
-
-            document.getElementById('totalSalesProductCost').textContent = `R$ ${tProdCost.toFixed(2)}`;
-            document.getElementById('totalSalesRepairSpent').textContent = `R$ ${tRepSpent.toFixed(2)}`;
-            document.getElementById('totalSalesAmount').textContent = `R$ ${tAmount.toFixed(2)}`;
-            document.getElementById('totalSalesProfit').textContent = `R$ ${tProfit.toFixed(2)}`;
-        }
-
-        // --- CONSERTOS ---
-        let repairsData = JSON.parse(localStorage.getItem('macmura_repairs') || '[]');
-
-        function saveRepairRecord() {
-            const client = document.getElementById('fieldRepairClient').value;
-            const details = document.getElementById('fieldRepairDetails').value;
-            const amount = parseFloat(document.getElementById('fieldRepairAmount').value) || 0;
-            const cost = parseFloat(document.getElementById('fieldRepairCost').value) || 0;
-            const status = document.getElementById('fieldRepairStatus').value;
-            const date = document.getElementById('fieldRepairDate').value;
-
-            if (!date || amount <= 0) {
-                alert('Preencha a data e o valor do conserto corretamente.');
-                return;
-            }
-
-            const record = { id: Date.now(), client, details, amount, cost, status, date };
-            repairsData.push(record);
-            localStorage.setItem('macmura_repairs', JSON.stringify(repairsData));
-
-            document.getElementById('fieldRepairClient').value = '';
-            document.getElementById('fieldRepairDetails').value = '';
-            document.getElementById('fieldRepairAmount').value = '';
-            document.getElementById('fieldRepairCost').value = '';
-
-            renderRepairsSummary();
-        }
-
-        function renderRepairsSummary() {
-            repairsData = JSON.parse(localStorage.getItem('macmura_repairs') || '[]');
-            let tAmount = 0, tCost = 0, tProfit = 0;
-
-            repairsData.forEach(item => {
-                tAmount += item.amount;
-                tCost += item.cost;
-                tProfit += (item.amount - item.cost);
-            });
-
-            document.getElementById('totalRepairsAmount').textContent = `R$ ${tAmount.toFixed(2)}`;
-            document.getElementById('totalRepairsCost').textContent = `R$ ${tCost.toFixed(2)}`;
-            document.getElementById('totalRepairsProfit').textContent = `R$ ${tProfit.toFixed(2)}`;
-        }
-
-        // --- CALCULADORA ---
-        let calcExpression = "";
+        // Calculadora Matemática
+        let calcExpression = '';
 
         function calcAppend(val) {
             calcExpression += val;
-            document.getElementById('calcDisplay').textContent = calcExpression;
+            document.getElementById('calcDisplay').innerText = calcExpression || '0';
         }
 
         function calcClear() {
-            calcExpression = "";
-            document.getElementById('calcDisplay').textContent = "0";
-            document.getElementById('calcHistory').textContent = "";
+            calcExpression = '';
+            document.getElementById('calcDisplay').innerText = '0';
+            document.getElementById('calcHistory').innerText = '';
         }
 
         function calcBackspace() {
             calcExpression = calcExpression.slice(0, -1);
-            document.getElementById('calcDisplay').textContent = calcExpression || "0";
+            document.getElementById('calcDisplay').innerText = calcExpression || '0';
         }
 
         function calcEvaluate() {
             try {
-                let evalString = calcExpression.replace(/×/g, '*').replace(/÷/g, '/');
-                let result = eval(evalString);
-                document.getElementById('calcHistory').textContent = calcExpression + " =";
-                document.getElementById('calcDisplay').textContent = result;
-                calcExpression = result.toString();
+                let sanitized = calcExpression.replace(/%/g, '/100');
+                let result = eval(sanitized);
+                document.getElementById('calcHistory').innerText = calcExpression + ' =';
+                calcExpression = String(result);
+                document.getElementById('calcDisplay').innerText = calcExpression;
             } catch (e) {
-                document.getElementById('calcDisplay').textContent = "Erro";
-                calcExpression = "";
+                document.getElementById('calcDisplay').innerText = 'Erro';
+                calcExpression = '';
             }
         }
 
-        // --- AJUSTES ---
+        // Ajustes do Sistema
         function updatePin() {
             const newPin = document.getElementById('newPinInput').value;
-            if(newPin.length === 4 && !isNaN(newPin)) {
-                currentPin = newPin;
-                localStorage.setItem('macmura_pin', currentPin);
-                alert('PIN alterado com sucesso!');
-                document.getElementById('newPinInput').value = '';
-            } else {
+            if (newPin.length !== 4 || isNaN(newPin)) {
                 alert('O PIN deve conter exatamente 4 números.');
+                return;
             }
+            userPin = newPin;
+            localStorage.setItem('macmura_pin', userPin);
+            document.getElementById('newPinInput').value = '';
+            alert('PIN alterado com sucesso!');
         }
 
         function clearAllData() {
-            if(confirm('Tem certeza que deseja apagar todos os dados de vendas e consertos? Essa ação não pode ser desfeita.')) {
+            if (confirm('ATENÇÃO: Deseja apagar TODOS os registros de vendas e consertos salvos? Esta ação não pode ser desfeita.')) {
                 localStorage.removeItem('macmura_sales');
                 localStorage.removeItem('macmura_repairs');
-                renderSalesSummary();
-                renderRepairsSummary();
+                salesData = [];
+                repairsData = [];
+                updateSalesSummary();
+                updateRepairsSummary();
                 alert('Todos os dados foram apagados.');
             }
+        }
+
+        // Funções Utilitárias
+        function formatCurrency(val) {
+            return 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
         }
     </script>
 </body>
