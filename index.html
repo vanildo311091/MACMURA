@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MACMURA - Gestão Profissional</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes farolAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .farol-text {
+            background: linear-gradient(270deg, #22c55e, #3b82f6, #a855f7, #3b82f6, #22c55e);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: farolAnimation 5s ease infinite;
+        }
+
+        @keyframes pinPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            50% { transform: scale(1.08); box-shadow: 0 0 15px 4px rgba(34, 197, 94, 0.6); border-color: #22c55e; }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        .pin-pop {
+            animation: pinPulse 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- TELA DE PIN / LOGIN -->
+    <div id="authScreen" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <div class="w-16 h-16 bg-brand-600/20 text-brand-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h1 class="text-3xl font-black tracking-tight mb-1 farol-text">MACMURA</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest mb-6">Gestão Profissional</p>
+            
+            <p id="pinMsg" class="text-sm text-slate-300 mb-4">Insira seu PIN de acesso:</p>
+            
+            <div class="flex justify-center gap-3 mb-6">
+                <input type="password" autocomplete="new-password" data-lpignore="true" maxlength="1" class="pin-digit w-12 h-14 text-center text-2xl font-bold bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-brand-500 text-white transition-all duration-200" autofocus>
+                <input type="password" autocomplete="new-password" data-lpignore="true" maxlength="1" class="pin-digit w-12 h-14 text-center text-2xl font-bold bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-brand-500 text-white transition-all duration-200">
+                <input type="password" autocomplete="new-password" data-lpignore="true" maxlength="1" class="pin-digit w-12 h-14 text-center text-2xl font-bold bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-brand-500 text-white transition-all duration-200">
+                <input type="password" autocomplete="new-password" data-lpignore="true" maxlength="1" class="pin-digit w-12 h-14 text-center text-2xl font-bold bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-brand-500 text-white transition-all duration-200">
+            </div>
+
+            <button onclick="handlePinSubmit()" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition duration-200 shadow-lg shadow-brand-600/30">
+                Entrar no Sistema
+            </button>
+        </div>
+    </div>
+
+    <!-- APLICATIVO PRINCIPAL -->
+    <div id="mainApp" class="hidden flex-1 flex flex-col">
+        <!-- HEADER -->
+        <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-brand-600 text-white rounded-xl flex items-center justify-center font-black text-xl shadow-md">
+                        M
+                    </div>
+                    <div>
+                        <span class="font-black text-lg tracking-tight farol-text">MACMURA</span>
+                        <span class="text-xs bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full font-medium ml-2">PAINEL</span>
+                    </div>
+                </div>
+
+                <!-- MENU DE NAVEGAÇÃO -->
+                <nav class="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                    <button onclick="switchTab('sales')" id="nav-sales" class="nav-btn px-4 py-2 text-sm font-medium rounded-lg transition text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 shadow-sm">
+                        <i class="fa-solid fa-cash-register mr-2"></i> Vendas
+                    </button>
+                    <button onclick="switchTab('repairs')" id="nav-repairs" class="nav-btn px-4 py-2 text-sm font-medium rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-screwdriver-wrench mr-2"></i> Consertos
+                    </button>
+                    <button onclick="switchTab('calculator')" id="nav-calculator" class="nav-btn px-4 py-2 text-sm font-medium rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-calculator mr-2"></i> Calc
+                    </button>
+                    <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn px-4 py-2 text-sm font-medium rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-gear mr-2"></i> Ajustes
+                    </button>
+                </nav>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                        <i id="themeIcon" class="fa-solid fa-moon"></i>
+                    </button>
+                    <button onclick="lockApp()" title="Bloquear Sistema" class="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition">
+                        <i class="fa-solid fa-lock"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Menu mobile inferior -->
+            <div class="md:hidden flex border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 justify-around py-2">
+                <button onclick="switchTab('sales')" id="mob-sales" class="mob-btn flex flex-col items-center text-xs text-brand-500 font-medium">
+                    <i class="fa-solid fa-cash-register text-base mb-1"></i> Vendas
+                </button>
+                <button onclick="switchTab('repairs')" id="mob-repairs" class="mob-btn flex flex-col items-center text-xs text-slate-500 dark:text-slate-400">
+                    <i class="fa-solid fa-screwdriver-wrench text-base mb-1"></i> Consertos
+                </button>
+                <button onclick="switchTab('calculator')" id="mob-calculator" class="mob-btn flex flex-col items-center text-xs text-slate-500 dark:text-slate-400">
+                    <i class="fa-solid fa-calculator text-base mb-1"></i> Calc
+                </button>
+                <button onclick="switchTab('settings')" id="mob-settings" class="mob-btn flex flex-col items-center text-xs text-slate-500 dark:text-slate-400">
+                    <i class="fa-solid fa-gear text-base mb-1"></i> Ajustes
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+            <!-- ABA 1: VENDAS -->
+            <section id="tab-sales" class="tab-content space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-cash-register text-brand-500"></i> Cadastro de Vendas</h2>
+                    <p class="text-sm text-slate-400">Registre custos de produto, gasto com peças e valor de venda.</p>
+                </div>
+
+                <!-- PAINEL DE CADASTRO DE VENDAS -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Valor que Paguei no Produto (R$)</label>
+                            <input type="number" id="fieldProductCost" step="0.01" placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Gasto com Peças (R$)</label>
+                            <input type="number" id="fieldRepairSpent" step="0.01" placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Valor que Vendi (R$)</label>
+                            <input type="number" id="fieldSaleAmount" step="0.01" placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Forma de Pagamento</label>
+                            <select id="fieldSalePayment" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                                <option value="Pix">Pix</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                                <option value="Cartão">Cartão</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                        <div class="w-full sm:w-64">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Data da Venda</label>
+                            <input type="date" id="fieldSaleDate" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                        <button onclick="saveSaleRecord()" class="w-full sm:w-auto px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-600/20 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Salvar Venda
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CARDS DE RESUMO DE VENDAS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+                        <p class="text-xs text-slate-400 font-medium">Total Pago (Produtos)</p>
+                        <p id="totalSalesProductCost" class="text-xl font-bold text-red-400 mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+                        <p class="text-xs text-slate-400 font-medium">Total Gasto (Peças)</p>
+                        <p id="totalSalesRepairSpent" class="text-xl font-bold text-red-400 mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+                        <p class="text-xs text-slate-400 font-medium">Total de Vendas</p>
+                        <p id="totalSalesAmount" class="text-xl font-bold text-brand-500 mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm border-l-4 border-l-brand-500">
+                        <p class="text-xs text-slate-400 font-medium">Lucro Total Vendas</p>
+                        <p id="totalSalesProfit" class="text-xl font-bold text-emerald-400 mt-1">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <!-- BOTÃO DE HISTÓRICO, FILTROS E TABELA DE VENDAS -->
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row items-center gap-3">
+                        <button onclick="toggleHistory('sales')" id="btnToggleSalesHistory" class="flex-1 w-full py-3 bg-slate-200 dark:bg-slate-900 hover:bg-slate-300 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 transition flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-clock-rotate-left"></i> <span id="salesHistoryText">Ver Histórico de Vendas</span>
+                        </button>
+                        
+                        <!-- FILTROS POR MÊS E ANO -->
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <select id="filterSalesMonth" onchange="renderSales()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:border-brand-500 shadow-sm">
+                                <option value="all">Todos os Meses</option>
+                                <option value="01">Janeiro</option>
+                                <option value="02">Fevereiro</option>
+                                <option value="03">Março</option>
+                                <option value="04">Abril</option>
+                                <option value="05">Maio</option>
+                                <option value="06">Junho</option>
+                                <option value="07">Julho</option>
+                                <option value="08">Agosto</option>
+                                <option value="09">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                            <select id="filterSalesYear" onchange="renderSales()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:border-brand-500 shadow-sm">
+                                <option value="all">Todos os Anos</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="salesHistoryContainer" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                        <th class="p-4 font-semibold">Data</th>
+                                        <th class="p-4 font-semibold">Pagamento</th>
+                                        <th class="p-4 font-semibold text-right">Valor Produto</th>
+                                        <th class="p-4 font-semibold text-right">Gasto com Peças</th>
+                                        <th class="p-4 font-semibold text-right">Valor Venda</th>
+                                        <th class="p-4 font-semibold text-right">Lucro</th>
+                                        <th class="p-4 font-semibold text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salesTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA 2: CONSERTOS -->
+            <section id="tab-repairs" class="tab-content hidden space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-screwdriver-wrench text-brand-500"></i> Cadastro de Consertos</h2>
+                    <p class="text-sm text-slate-400">Gerencie ordens de serviço, valores cobrados e gastos com peças.</p>
+                </div>
+
+                <!-- PAINEL DE CADASTRO DE CONSERTOS -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Nome do Cliente</label>
+                            <input type="text" id="fieldRepairClient" placeholder="Ex: João da Silva" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Aparelho / Defeito</label>
+                            <input type="text" id="fieldRepairDetails" placeholder="Ex: iPhone 11 - Tela" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Valor Conserto (R$)</label>
+                            <input type="number" id="fieldRepairAmount" step="0.01" placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Gasto Peça (R$)</label>
+                            <input type="number" id="fieldRepairCost" step="0.01" placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Status do Serviço</label>
+                            <select id="fieldRepairStatus" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                                <option value="Concluído">Concluído</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Aguardando Peça">Aguardando Peça</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Data</label>
+                            <input type="date" id="fieldRepairDate" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="saveRepairRecord()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-600/20 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Salvar Conserto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARDS DE RESUMO DE CONSERTOS -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+                        <p class="text-xs text-slate-400 font-medium">Total de Consertos (Receita)</p>
+                        <p id="totalRepairsAmount" class="text-xl font-bold text-brand-500 mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
+                        <p class="text-xs text-slate-400 font-medium">Total Gasto com Peças</p>
+                        <p id="totalRepairsCost" class="text-xl font-bold text-red-400 mt-1">R$ 0,00</p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm border-l-4 border-l-brand-500">
+                        <p class="text-xs text-slate-400 font-medium">Lucro Líquido Consertos</p>
+                        <p id="totalRepairsProfit" class="text-xl font-bold text-emerald-400 mt-1">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <!-- BOTÃO DE HISTÓRICO, FILTROS E TABELA DE CONSERTOS -->
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row items-center gap-3">
+                        <button onclick="toggleHistory('repairs')" id="btnToggleRepairsHistory" class="flex-1 w-full py-3 bg-slate-200 dark:bg-slate-900 hover:bg-slate-300 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 transition flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-clock-rotate-left"></i> <span id="repairsHistoryText">Ver Histórico de Consertos</span>
+                        </button>
+                        
+                        <!-- FILTROS POR MÊS E ANO -->
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <select id="filterRepairsMonth" onchange="renderRepairs()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:border-brand-500 shadow-sm">
+                                <option value="all">Todos os Meses</option>
+                                <option value="01">Janeiro</option>
+                                <option value="02">Fevereiro</option>
+                                <option value="03">Março</option>
+                                <option value="04">Abril</option>
+                                <option value="05">Maio</option>
+                                <option value="06">Junho</option>
+                                <option value="07">Julho</option>
+                                <option value="08">Agosto</option>
+                                <option value="09">Setembro</option>
+                                <option value="10">Outubro</option>
+                                <option value="11">Novembro</option>
+                                <option value="12">Dezembro</option>
+                            </select>
+                            <select id="filterRepairsYear" onchange="renderRepairs()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:border-brand-500 shadow-sm">
+                                <option value="all">Todos os Anos</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="repairsHistoryContainer" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                        <th class="p-4 font-semibold">Data</th>
+                                        <th class="p-4 font-semibold">Cliente / Aparelho</th>
+                                        <th class="p-4 font-semibold">Status</th>
+                                        <th class="p-4 font-semibold text-right">Valor Conserto</th>
+                                        <th class="p-4 font-semibold text-right">Valor Gasto Peça</th>
+                                        <th class="p-4 font-semibold text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="repairsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA 3: CALCULADORA -->
+            <section id="tab-calculator" class="tab-content hidden space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold">Calculadora Matemática</h2>
+                    <p class="text-sm text-slate-400">Calculadora rápida para o dia a dia da loja.</p>
+                </div>
+
+                <div class="max-w-md mx-auto bg-slate-900/90 dark:bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-5">
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 text-right shadow-inner">
+                        <div id="calcHistory" class="text-xs text-slate-500 font-mono h-5 overflow-hidden"></div>
+                        <div id="calcDisplay" class="text-3xl font-black font-mono tracking-wider text-white overflow-x-auto mt-1">0</div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2.5">
+                        <button onclick="calcClear()" class="py-3.5 bg-red-500/10 text-red-400 font-bold rounded-xl hover:bg-red-500/20 transition text-sm">AC</button>
+                        <button onclick="calcBackspace()" class="py-3.5 bg-slate-800 text-slate-300 font-bold rounded-xl hover:bg-slate-700 transition text-sm"><i class="fa-solid fa-delete-left"></i></button>
+                        <button onclick="calcAppend('%')" class="py-3.5 bg-slate-800 text-slate-300 font-bold rounded-xl hover:bg-slate-700 transition text-sm">%</button>
+                        <button onclick="calcAppend('/')" class="py-3.5 bg-emerald-500/15 text-emerald-400 font-bold rounded-xl hover:bg-emerald-500/25 transition text-base">÷</button>
+
+                        <button onclick="calcAppend('7')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">7</button>
+                        <button onclick="calcAppend('8')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">8</button>
+                        <button onclick="calcAppend('9')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">9</button>
+                        <button onclick="calcAppend('*')" class="py-3.5 bg-emerald-500/15 text-emerald-400 font-bold rounded-xl hover:bg-emerald-500/25 transition text-base">×</button>
+
+                        <button onclick="calcAppend('4')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">4</button>
+                        <button onclick="calcAppend('5')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">5</button>
+                        <button onclick="calcAppend('6')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">6</button>
+                        <button onclick="calcAppend('-')" class="py-3.5 bg-emerald-500/15 text-emerald-400 font-bold rounded-xl hover:bg-emerald-500/25 transition text-base">-</button>
+
+                        <button onclick="calcAppend('1')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">1</button>
+                        <button onclick="calcAppend('2')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">2</button>
+                        <button onclick="calcAppend('3')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">3</button>
+                        <button onclick="calcAppend('+')" class="py-3.5 bg-emerald-500/15 text-emerald-400 font-bold rounded-xl hover:bg-emerald-500/25 transition text-base">+</button>
+
+                        <button onclick="calcAppend('0')" class="col-span-2 py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">0</button>
+                        <button onclick="calcAppend('.')" class="py-3.5 bg-slate-800/40 text-white font-bold rounded-xl hover:bg-slate-800 transition text-base">.</button>
+                        <button onclick="calcEvaluate()" class="py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl transition shadow-lg shadow-brand-600/30 text-base">=</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA 4: AJUSTES -->
+            <section id="tab-settings" class="tab-content hidden space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold">Ajustes e Segurança</h2>
+                    <p class="text-sm text-slate-400">Gerencie seu PIN e dados do sistema.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+                        <h3 class="font-bold text-base mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-key text-brand-500"></i> Alterar PIN de Acesso
+                        </h3>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Novo PIN (4 dígitos)</label>
+                            <input type="password" autocomplete="new-password" data-lpignore="true" id="newPinInput" maxlength="4" placeholder="••••" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                        </div>
+                        <button onclick="changePin()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition">
+                            Atualizar PIN
+                        </button>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+                        <h3 class="font-bold text-base mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-database text-brand-500"></i> Backup e Dados
+                        </h3>
+                        <div class="flex gap-3">
+                            <button onclick="exportData()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-download"></i> Exportar
+                            </button>
+                        </div>
+                        <button onclick="resetData()" class="w-full py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-semibold rounded-xl transition mt-2">
+                            Apagar Todos os Dados
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- SCRIPT DA APLICAÇÃO -->
+    <script>
+        let sales = JSON.parse(localStorage.getItem('macmura_sales')) || [];
+        let repairs = JSON.parse(localStorage.getItem('macmura_repairs')) || [];
+        let pinCode = localStorage.getItem('macmura_pin') || '1234';
+
+        // --- AUTENTICAÇÃO PIN ---
+        const pinInputs = document.querySelectorAll('.pin-digit');
+        pinInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if(e.target.value) {
+                    input.classList.add('pin-pop');
+                    setTimeout(() => input.classList.remove('pin-pop'), 300);
+
+                    if(index < pinInputs.length - 1) {
+                        pinInputs[index + 1].focus();
+                    }
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if(e.key === 'Backspace' && !input.value && index > 0) {
+                    pinInputs[index - 1].focus();
+                }
+            });
+        });
+
+        function handlePinSubmit() {
+            let entered = Array.from(pinInputs).map(i => i.value).join('');
+            if(entered === pinCode) {
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                initApp();
+            } else {
+                pinInputs.forEach(i => {
+                    i.classList.add('border-red-500', 'bg-red-500/10');
+                    setTimeout(() => i.classList.remove('border-red-500', 'bg-red-500/10'), 500);
+                    i.value = '';
+                });
+                document.getElementById('pinMsg').innerText = 'PIN incorreto! Tente novamente:';
+                document.getElementById('pinMsg').classList.add('text-red-500');
+                pinInputs[0].focus();
+            }
+        }
+
+        function lockApp() {
+            pinInputs.forEach(i => i.value = '');
+            document.getElementById('pinMsg').innerText = 'Insira seu PIN de acesso:';
+            document.getElementById('pinMsg').classList.remove('text-red-500');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
+            pinInputs[0].focus();
+        }
+
+        // --- NAVEGAÇÃO DE ABAS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
+                btn.classList.add('text-slate-600', 'dark:text-slate-400');
+            });
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if(activeNav) {
+                activeNav.classList.add('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
+                activeNav.classList.remove('text-slate-600', 'dark:text-slate-400');
+            }
+
+            document.querySelectorAll('.mob-btn').forEach(btn => {
+                btn.classList.remove('text-brand-500', 'font-medium');
+                btn.classList.add('text-slate-500', 'dark:text-slate-400');
+            });
+            const activeMob = document.getElementById(`mob-${tabId}`);
+            if(activeMob) {
+                activeMob.classList.add('text-brand-500', 'font-medium');
+                activeMob.classList.remove('text-slate-500', 'dark:text-slate-400');
+            }
+        }
+
+        // --- TEMA ESCURO / CLARO ---
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if(html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-sun';
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-moon';
+            }
+        }
+
+        // --- INICIALIZAÇÃO E RENDERIZAÇÃO ---
+        function initApp() {
+            populateYearFilters();
+            renderSales();
+            renderRepairs();
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fieldSaleDate').value = today;
+            document.getElementById('fieldRepairDate').value = today;
+        }
+
+        function formatMoney(val) {
+            return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // --- POPULAR ANOS NOS FILTROS ---
+        function populateYearFilters() {
+            const yearsSet = new Set();
+            const currentYear = new Date().getFullYear().toString();
+            yearsSet.add(currentYear);
+
+            sales.forEach(s => {
+                if (s.date) yearsSet.add(s.date.split('-')[0]);
+            });
+            repairs.forEach(r => {
+                if (r.date) yearsSet.add(r.date.split('-')[0]);
+            });
+
+            const sortedYears = Array.from(yearsSet).sort().reverse();
+
+            const salesYearSelect = document.getElementById('filterSalesYear');
+            const repairsYearSelect = document.getElementById('filterRepairsYear');
+
+            let optionsHtml = '<option value="all">Todos os Anos</option>';
+            sortedYears.forEach(y => {
+                optionsHtml += `<option value="${y}">${y}</option>`;
+            });
+
+            salesYearSelect.innerHTML = optionsHtml;
+            repairsYearSelect.innerHTML = optionsHtml;
+
+            salesYearSelect.value = currentYear;
+            repairsYearSelect.value = currentYear;
+        }
+
+        // --- TOGGLE HISTÓRICO SANFONADO ---
+        function toggleHistory(type) {
+            const container = document.getElementById(`${type}HistoryContainer`);
+            const text = document.getElementById(`${type}HistoryText`);
+            
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                text.innerText = type === 'sales' ? 'Ocultar Histórico de Vendas' : 'Ocultar Histórico de Consertos';
+            } else {
+                container.classList.add('hidden');
+                text.innerText = type === 'sales' ? 'Ver Histórico de Vendas' : 'Ver Histórico de Consertos';
+            }
+        }
+
+        // --- MÓDULO DE VENDAS ---
+        function renderSales() {
+            const tbody = document.getElementById('salesTableBody');
+            tbody.innerHTML = '';
+
+            const selectedMonth = document.getElementById('filterSalesMonth').value;
+            const selectedYear = document.getElementById('filterSalesYear').value;
+
+            let totalProdCost = 0;
+            let totalRepairSpent = 0;
+            let totalAmount = 0;
+            let totalProfit = 0;
+
+            sales.forEach((sale, index) => {
+                if (sale.date) {
+                    const [year, month] = sale.date.split('-');
+                    if (selectedMonth !== 'all' && month !== selectedMonth) return;
+                    if (selectedYear !== 'all' && year !== selectedYear) return;
+                } else if (selectedMonth !== 'all' || selectedYear !== 'all') {
+                    return;
+                }
+
+                const prodCost = Number(sale.productCost || 0);
+                const repSpent = Number(sale.repairSpent || 0);
+                const amount = Number(sale.amount || 0);
+                const profit = amount - (prodCost + repSpent);
+
+                totalProdCost += prodCost;
+                totalRepairSpent += repSpent;
+                totalAmount += amount;
+                totalProfit += profit;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
+                        <td class="p-4 font-mono text-xs text-slate-500">${sale.date || '-'}</td>
+                        <td class="p-4 font-medium"><span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs">${sale.payment || 'Pix'}</span></td>
+                        <td class="p-4 text-right text-red-400 font-medium">${formatMoney(prodCost)}</td>
+                        <td class="p-4 text-right text-red-400 font-medium">${formatMoney(repSpent)}</td>
+                        <td class="p-4 text-right text-brand-500 font-bold">${formatMoney(amount)}</td>
+                        <td class="p-4 text-right text-emerald-400 font-bold">${formatMoney(profit)}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteRecord('sale', ${index})" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition flex items-center justify-center mx-auto text-xs">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalSalesProductCost').innerText = formatMoney(totalProdCost);
+            document.getElementById('totalSalesRepairSpent').innerText = formatMoney(totalRepairSpent);
+            document.getElementById('totalSalesAmount').innerText = formatMoney(totalAmount);
+            document.getElementById('totalSalesProfit').innerText = formatMoney(totalProfit);
+        }
+
+        function saveSaleRecord() {
+            const productCost = document.getElementById('fieldProductCost').value;
+            const repairSpent = document.getElementById('fieldRepairSpent').value;
+            const amount = document.getElementById('fieldSaleAmount').value;
+            const date = document.getElementById('fieldSaleDate').value;
+            const payment = document.getElementById('fieldSalePayment').value;
+
+            if (!amount) {
+                alert('Por favor, informe o valor da venda.');
+                return;
+            }
+
+            sales.unshift({ productCost, repairSpent, amount, date, payment });
+            localStorage.setItem('macmura_sales', JSON.stringify(sales));
+            populateYearFilters();
+            renderSales();
+
+            document.getElementById('fieldProductCost').value = '';
+            document.getElementById('fieldRepairSpent').value = '';
+            document.getElementById('fieldSaleAmount').value = '';
+        }
+
+        // --- MÓDULO DE CONSERTOS ---
+        function renderRepairs() {
+            const tbody = document.getElementById('repairsTableBody');
+            tbody.innerHTML = '';
+
+            const selectedMonth = document.getElementById('filterRepairsMonth').value;
+            const selectedYear = document.getElementById('filterRepairsYear').value;
+
+            let totalAmount = 0;
+            let totalCost = 0;
+            let totalProfit = 0;
+
+            repairs.forEach((repair, index) => {
+                if (repair.date) {
+                    const [year, month] = repair.date.split('-');
+                    if (selectedMonth !== 'all' && month !== selectedMonth) return;
+                    if (selectedYear !== 'all' && year !== selectedYear) return;
+                } else if (selectedMonth !== 'all' || selectedYear !== 'all') {
+                    return;
+                }
+
+                const amount = Number(repair.amount || 0);
+                const cost = Number(repair.cost || 0);
+                const profit = amount - cost;
+
+                totalAmount += amount;
+                totalCost += cost;
+                totalProfit += profit;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
+                        <td class="p-4 font-mono text-xs text-slate-500">${repair.date || '-'}</td>
+                        <td class="p-4">
+                            <div class="font-bold">${repair.client || ''}</div>
+                            <div class="text-xs text-slate-400">${repair.details || ''}</div>
+                        </td>
+                        <td class="p-4"><span class="px-2 py-1 bg-brand-500/10 text-brand-500 rounded-lg text-xs font-medium">${repair.status || 'Concluído'}</span></td>
+                        <td class="p-4 text-right text-brand-500 font-bold">${formatMoney(amount)}</td>
+                        <td class="p-4 text-right text-red-400 font-medium">${formatMoney(cost)}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteRecord('repair', ${index})" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition flex items-center justify-center mx-auto text-xs">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalRepairsAmount').innerText = formatMoney(totalAmount);
+            document.getElementById('totalRepairsCost').innerText = formatMoney(totalCost);
+            document.getElementById('totalRepairsProfit').innerText = formatMoney(totalProfit);
+        }
+
+        function saveRepairRecord() {
+            const client = document.getElementById('fieldRepairClient').value;
+            const details = document.getElementById('fieldRepairDetails').value;
+            const amount = document.getElementById('fieldRepairAmount').value;
+            const cost = document.getElementById('fieldRepairCost').value;
+            const date = document.getElementById('fieldRepairDate').value;
+            const status = document.getElementById('fieldRepairStatus').value;
+
+            if (!client || !amount) {
+                alert('Preencha pelo menos o nome do cliente e o valor do conserto.');
+                return;
+            }
+
+            repairs.unshift({ client, details, amount, cost, date, status });
+            localStorage.setItem('macmura_repairs', JSON.stringify(repairs));
+            populateYearFilters();
+            renderRepairs();
+
+            document.getElementById('fieldRepairClient').value = '';
+            document.getElementById('fieldRepairDetails').value = '';
+            document.getElementById('fieldRepairAmount').value = '';
+            document.getElementById('fieldRepairCost').value = '';
+        }
+
+        function deleteRecord(type, index) {
+            if(confirm('Tem certeza que deseja excluir este registro?')) {
+                if(type === 'sale') {
+                    sales.splice(index, 1);
+                    localStorage.setItem('macmura_sales', JSON.stringify(sales));
+                    renderSales();
+                } else if(type === 'repair') {
+                    repairs.splice(index, 1);
+                    localStorage.setItem('macmura_repairs', JSON.stringify(repairs));
+                    renderRepairs();
+                }
+            }
+        }
+
+        // --- CALCULADORA ---
+        let calcExpression = '';
+
+        function calcAppend(val) {
+            if (calcExpression === '0' && val !== '.') {
+                calcExpression = val;
+            } else {
+                calcExpression += val;
+            }
+            updateCalcDisplay();
+        }
+
+        function calcClear() {
+            calcExpression = '';
+            document.getElementById('calcHistory').innerText = '';
+            updateCalcDisplay();
+        }
+
+        function calcBackspace() {
+            calcExpression = calcExpression.slice(0, -1);
+            updateCalcDisplay();
+        }
+
+        function updateCalcDisplay() {
+            document.getElementById('calcDisplay').innerText = calcExpression || '0';
+        }
+
+        function calcEvaluate() {
+            try {
+                let expr = calcExpression.replace(/%/g, '/100');
+                let result = eval(expr);
+                document.getElementById('calcHistory').innerText = calcExpression + ' =';
+                calcExpression = String(result);
+                updateCalcDisplay();
+            } catch (e) {
+                document.getElementById('calcDisplay').innerText = 'Erro';
+                calcExpression = '';
+            }
+        }
+
+        // --- AJUSTES E SEGURANÇA ---
+        function changePin() {
+            const newPin = document.getElementById('newPinInput').value;
+            if(newPin.length !== 4 || isNaN(newPin)) {
+                alert('O PIN deve conter exatamente 4 dígitos numéricos.');
+                return;
+            }
+            pinCode = newPin;
+            localStorage.setItem('macmura_pin', pinCode);
+            document.getElementById('newPinInput').value = '';
+            alert('PIN alterado com sucesso!');
+        }
+
+        function exportData() {
+            const data = { sales, repairs, pinCode };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_macmura_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function resetData() {
+            if(confirm('ATENÇÃO: Todos os dados de vendas e consertos serão apagados permanentemente. Deseja continuar?')) {
+                localStorage.clear();
+                sales = [];
+                repairs = [];
+                renderSales();
+                renderRepairs();
+                alert('Dados apagados com sucesso.');
+                lockApp();
+            }
+        }
+    </script>
+</body>
+</html>
