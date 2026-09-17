@@ -201,54 +201,11 @@
                     </div>
                 </div>
 
-                <!-- BOTÃO DE HISTÓRICO, FILTROS E TABELA DE VENDAS -->
-                <div class="space-y-4">
-                    <div class="flex flex-col sm:flex-row items-center gap-3">
-                        <button onclick="toggleHistory('sales')" id="btnToggleSalesHistory" class="flex-1 w-full py-3 bg-slate-200 dark:bg-slate-900 hover:bg-slate-300 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 transition flex items-center justify-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-clock-rotate-left"></i> <span id="salesHistoryText">Ver Histórico de Vendas</span>
-                        </button>
-                        
-                        <!-- FILTROS POR MÊS E ANO -->
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <select id="filterSalesMonth" onchange="renderSales()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:border-brand-500 shadow-sm">
-                                <option value="all">Todos os Meses</option>
-                                <option value="01">Janeiro</option>
-                                <option value="02">Fevereiro</option>
-                                <option value="03">Março</option>
-                                <option value="04">Abril</option>
-                                <option value="05">Maio</option>
-                                <option value="06">Junho</option>
-                                <option value="07">Julho</option>
-                                <option value="08">Agosto</option>
-                                <option value="09">Setembro</option>
-                                <option value="10">Outubro</option>
-                                <option value="11">Novembro</option>
-                                <option value="12">Dezembro</option>
-                            </select>
-                            <select id="filterSalesYear" onchange="renderSales()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:border-brand-500 shadow-sm">
-                                <option value="all">Todos os Anos</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="salesHistoryContainer" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                                        <th class="p-4 font-semibold">Data</th>
-                                        <th class="p-4 font-semibold">Pagamento</th>
-                                        <th class="p-4 font-semibold text-right">Valor Produto</th>
-                                        <th class="p-4 font-semibold text-right">Gasto com Peças</th>
-                                        <th class="p-4 font-semibold text-right">Valor Venda</th>
-                                        <th class="p-4 font-semibold text-right">Lucro</th>
-                                        <th class="p-4 font-semibold text-center">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="salesTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody>
-                            </table>
-                        </div>
-                    </div>
+                <!-- BOTÃO PARA ABRIR O HISTÓRICO DE VENDAS EM MODAL -->
+                <div class="pt-2">
+                    <button type="button" onclick="openHistoryModal('sales')" class="w-full py-3.5 bg-slate-200 dark:bg-slate-900 hover:bg-slate-300 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-clock-rotate-left text-brand-500"></i> Abrir Histórico de Vendas
+                    </button>
                 </div>
             </section>
 
@@ -263,12 +220,12 @@
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Nome do Cliente</label>
-                            <input type="text" id="fieldRepairClient" placeholder="Ex: João da Silva" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Identificação / Cliente</label>
+                            <input type="text" id="fieldRepairClient" placeholder="" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Aparelho / Defeito</label>
-                            <input type="text" id="fieldRepairDetails" placeholder="Ex: iPhone 11 - Tela" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Descrição / Defeito</label>
+                            <input type="text" id="fieldRepairDetails" placeholder="" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Valor Conserto (R$)</label>
@@ -316,53 +273,11 @@
                     </div>
                 </div>
 
-                <!-- BOTÃO DE HISTÓRICO, FILTROS E TABELA DE CONSERTOS -->
-                <div class="space-y-4">
-                    <div class="flex flex-col sm:flex-row items-center gap-3">
-                        <button onclick="toggleHistory('repairs')" id="btnToggleRepairsHistory" class="flex-1 w-full py-3 bg-slate-200 dark:bg-slate-900 hover:bg-slate-300 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 transition flex items-center justify-center gap-2 shadow-sm">
-                            <i class="fa-solid fa-clock-rotate-left"></i> <span id="repairsHistoryText">Ver Histórico de Consertos</span>
-                        </button>
-                        
-                        <!-- FILTROS POR MÊS E ANO -->
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <select id="filterRepairsMonth" onchange="renderRepairs()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:border-brand-500 shadow-sm">
-                                <option value="all">Todos os Meses</option>
-                                <option value="01">Janeiro</option>
-                                <option value="02">Fevereiro</option>
-                                <option value="03">Março</option>
-                                <option value="04">Abril</option>
-                                <option value="05">Maio</option>
-                                <option value="06">Junho</option>
-                                <option value="07">Julho</option>
-                                <option value="08">Agosto</option>
-                                <option value="09">Setembro</option>
-                                <option value="10">Outubro</option>
-                                <option value="11">Novembro</option>
-                                <option value="12">Dezembro</option>
-                            </select>
-                            <select id="filterRepairsYear" onchange="renderRepairs()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-3 py-3 text-sm focus:outline-none focus:border-brand-500 shadow-sm">
-                                <option value="all">Todos os Anos</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="repairsHistoryContainer" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                                        <th class="p-4 font-semibold">Data</th>
-                                        <th class="p-4 font-semibold">Cliente / Aparelho</th>
-                                        <th class="p-4 font-semibold">Status</th>
-                                        <th class="p-4 font-semibold text-right">Valor Conserto</th>
-                                        <th class="p-4 font-semibold text-right">Valor Gasto Peça</th>
-                                        <th class="p-4 font-semibold text-center">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="repairsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody>
-                            </table>
-                        </div>
-                    </div>
+                <!-- BOTÃO PARA ABRIR O HISTÓRICO DE CONSERTOS EM MODAL -->
+                <div class="pt-2">
+                    <button type="button" onclick="openHistoryModal('repairs')" class="w-full py-3.5 bg-slate-200 dark:bg-slate-900 hover:bg-slate-300 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-2xl border border-slate-300 dark:border-slate-800 transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-clock-rotate-left text-brand-500"></i> Abrir Histórico de Consertos
+                    </button>
                 </div>
             </section>
 
@@ -410,35 +325,25 @@
             <!-- ABA 4: AJUSTES -->
             <section id="tab-settings" class="tab-content hidden space-y-6">
                 <div>
-                    <h2 class="text-xl font-bold">Ajustes e Segurança</h2>
-                    <p class="text-sm text-slate-400">Gerencie seu PIN e dados do sistema.</p>
+                    <h2 class="text-xl font-bold">Ajustes do Sistema</h2>
+                    <p class="text-sm text-slate-400">Gerenciamento de dados e segurança do painel.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-                        <h3 class="font-bold text-base mb-2 flex items-center gap-2">
-                            <i class="fa-solid fa-key text-brand-500"></i> Alterar PIN de Acesso
-                        </h3>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Novo PIN (4 dígitos)</label>
-                            <input type="password" autocomplete="new-password" data-lpignore="true" id="newPinInput" maxlength="4" placeholder="••••" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
-                        </div>
-                        <button onclick="changePin()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition">
-                            Atualizar PIN
-                        </button>
-                    </div>
-
-                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-                        <h3 class="font-bold text-base mb-2 flex items-center gap-2">
-                            <i class="fa-solid fa-database text-brand-500"></i> Backup e Dados
-                        </h3>
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm space-y-6 max-w-xl">
+                    <div>
+                        <h3 class="font-semibold text-base mb-1">Segurança (PIN de Acesso)</h3>
+                        <p class="text-xs text-slate-400 mb-3">Defina um novo PIN de 4 dígitos para proteger o sistema.</p>
                         <div class="flex gap-3">
-                            <button onclick="exportData()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-download"></i> Exportar
-                            </button>
+                            <input type="password" id="newPinInput" maxlength="4" placeholder="Novo PIN" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500">
+                            <button onclick="updatePin()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl text-sm transition">Alterar PIN</button>
                         </div>
-                        <button onclick="resetData()" class="w-full py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-semibold rounded-xl transition mt-2">
-                            Apagar Todos os Dados
+                    </div>
+                    <hr class="border-slate-200 dark:border-slate-800">
+                    <div>
+                        <h3 class="font-semibold text-base mb-1 text-red-400">Zona de Perigo / Dados</h3>
+                        <p class="text-xs text-slate-400 mb-3">Limpar todos os registros salvos no navegador (vendas e consertos).</p>
+                        <button onclick="clearAllData()" class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-semibold rounded-xl text-sm transition border border-red-500/20">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Apagar Todos os Dados
                         </button>
                     </div>
                 </div>
@@ -447,70 +352,141 @@
         </main>
     </div>
 
-    <!-- SCRIPT DA APLICAÇÃO -->
+    <!-- MODAL DE HISTÓRICO FLUTUANTE -->
+    <div id="historyModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="modalIconContainer" class="w-10 h-10 bg-brand-500/10 text-brand-500 rounded-xl flex items-center justify-center text-lg">
+                        <i id="modalHeaderIcon" class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalTitle" class="text-lg font-bold">Histórico</h3>
+                        <p class="text-xs text-slate-400">Visualização de registros salvos</p>
+                    </div>
+                </div>
+                
+                <!-- Filtros e Botões de Exportação/Fechar -->
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <select id="modalFilterMonth" onchange="renderModalTable()" class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                        <option value="all">Todos os Meses</option>
+                        <option value="01">Janeiro</option>
+                        <option value="02">Fevereiro</option>
+                        <option value="03">Março</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Maio</option>
+                        <option value="06">Junho</option>
+                        <option value="07">Julho</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Setembro</option>
+                        <option value="10">Outubro</option>
+                        <option value="11">Novembro</option>
+                        <option value="12">Dezembro</option>
+                    </select>
+                    <select id="modalFilterYear" onchange="renderModalTable()" class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500">
+                        <option value="all">Todos os Anos</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                    
+                    <button onclick="exportToCSV()" title="Exportar para Excel (CSV)" class="px-3 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-excel"></i> CSV
+                    </button>
+                    <button onclick="exportToPDF()" title="Imprimir / Salvar em PDF" class="px-3 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf"></i> PDF
+                    </button>
+                    <button onclick="closeHistoryModal()" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body (Tabela com rolagem) -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+                <div class="bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr id="modalTableHeaders" class="bg-slate-100 dark:bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                                    <!-- Cabeçalhos injetados via JS -->
+                                </tr>
+                            </thead>
+                            <tbody id="modalTableBody" class="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                                <!-- Dados injetados via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT DO SISTEMA -->
     <script>
-        let sales = JSON.parse(localStorage.getItem('macmura_sales')) || [];
-        let repairs = JSON.parse(localStorage.getItem('macmura_repairs')) || [];
-        let pinCode = localStorage.getItem('macmura_pin') || '1234';
+        const CORRECT_PIN_DEFAULT = "1234";
+        let currentPin = localStorage.getItem("macmura_pin") || CORRECT_PIN_DEFAULT;
 
-        // --- AUTENTICAÇÃO PIN ---
-        const pinInputs = document.querySelectorAll('.pin-digit');
-        pinInputs.forEach((input, index) => {
-            input.addEventListener('input', (e) => {
-                if(e.target.value) {
-                    input.classList.add('pin-pop');
-                    setTimeout(() => input.classList.remove('pin-pop'), 300);
-
-                    if(index < pinInputs.length - 1) {
-                        pinInputs[index + 1].focus();
-                    }
+        // PIN Inputs Handler
+        const pinDigits = document.querySelectorAll('.pin-digit');
+        pinDigits.forEach((digit, index) => {
+            digit.addEventListener('input', (e) => {
+                const val = e.target.value;
+                if (val && index < pinDigits.length - 1) {
+                    pinDigits[index + 1].focus();
                 }
             });
-            input.addEventListener('keydown', (e) => {
-                if(e.key === 'Backspace' && !input.value && index > 0) {
-                    pinInputs[index - 1].focus();
+            digit.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !digit.value && index > 0) {
+                    pinDigits[index - 1].focus();
                 }
             });
         });
 
         function handlePinSubmit() {
-            let entered = Array.from(pinInputs).map(i => i.value).join('');
-            if(entered === pinCode) {
+            let enteredPin = "";
+            pinDigits.forEach(d => enteredPin += d.value);
+
+            if (enteredPin === currentPin) {
                 document.getElementById('authScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
                 initApp();
             } else {
-                pinInputs.forEach(i => {
-                    i.classList.add('border-red-500', 'bg-red-500/10');
-                    setTimeout(() => i.classList.remove('border-red-500', 'bg-red-500/10'), 500);
-                    i.value = '';
+                const pinMsg = document.getElementById('pinMsg');
+                pinMsg.textContent = "PIN incorreto! Tente novamente.";
+                pinMsg.classList.add('text-red-400');
+                pinDigits.forEach(d => {
+                    d.value = "";
+                    d.classList.add('pin-pop', 'border-red-500');
+                    setTimeout(() => d.classList.remove('pin-pop', 'border-red-500'), 300);
                 });
-                document.getElementById('pinMsg').innerText = 'PIN incorreto! Tente novamente:';
-                document.getElementById('pinMsg').classList.add('text-red-500');
-                pinInputs[0].focus();
+                pinDigits[0].focus();
             }
         }
 
         function lockApp() {
-            pinInputs.forEach(i => i.value = '');
-            document.getElementById('pinMsg').innerText = 'Insira seu PIN de acesso:';
-            document.getElementById('pinMsg').classList.remove('text-red-500');
             document.getElementById('mainApp').classList.add('hidden');
             document.getElementById('authScreen').classList.remove('hidden');
-            pinInputs[0].focus();
+            pinDigits.forEach(d => d.value = "");
+            pinDigits[0].focus();
+            const pinMsg = document.getElementById('pinMsg');
+            pinMsg.textContent = "Insira seu PIN de acesso:";
+            pinMsg.classList.remove('text-red-400');
         }
 
-        // --- NAVEGAÇÃO DE ABAS ---
-        function switchTab(tabId) {
+        // Navegação de Abas
+        function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
 
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
                 btn.classList.add('text-slate-600', 'dark:text-slate-400');
             });
-            const activeNav = document.getElementById(`nav-${tabId}`);
-            if(activeNav) {
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            if (activeNav) {
                 activeNav.classList.add('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
                 activeNav.classList.remove('text-slate-600', 'dark:text-slate-400');
             }
@@ -519,325 +495,338 @@
                 btn.classList.remove('text-brand-500', 'font-medium');
                 btn.classList.add('text-slate-500', 'dark:text-slate-400');
             });
-            const activeMob = document.getElementById(`mob-${tabId}`);
-            if(activeMob) {
+            const activeMob = document.getElementById(`mob-${tabName}`);
+            if (activeMob) {
                 activeMob.classList.add('text-brand-500', 'font-medium');
                 activeMob.classList.remove('text-slate-500', 'dark:text-slate-400');
             }
         }
 
-        // --- TEMA ESCURO / CLARO ---
+        // Tema Escuro / Claro
         function toggleDarkMode() {
             const html = document.documentElement;
             const icon = document.getElementById('themeIcon');
-            if(html.classList.contains('dark')) {
+            if (html.classList.contains('dark')) {
                 html.classList.remove('dark');
-                icon.className = 'fa-solid fa-sun';
+                icon.className = "fa-solid fa-sun";
             } else {
                 html.classList.add('dark');
-                icon.className = 'fa-solid fa-moon';
+                icon.className = "fa-solid fa-moon";
             }
         }
 
-        // --- INICIALIZAÇÃO E RENDERIZAÇÃO ---
+        // Inicialização de Dados e Aplicação
         function initApp() {
-            populateYearFilters();
-            renderSales();
-            renderRepairs();
-            
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fieldSaleDate').value = today;
-            document.getElementById('fieldRepairDate').value = today;
+            const dateSale = document.getElementById('fieldSaleDate');
+            const dateRepair = document.getElementById('fieldRepairDate');
+            if(dateSale && !dateSale.value) dateSale.value = today;
+            if(dateRepair && !dateRepair.value) dateRepair.value = today;
+
+            renderSalesSummary();
+            renderRepairsSummary();
         }
 
-        function formatMoney(val) {
-            return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
+        // --- CONTROLE DO MODAL DE HISTÓRICO ---
+        let currentModalType = 'sales';
 
-        // --- POPULAR ANOS NOS FILTROS ---
-        function populateYearFilters() {
-            const yearsSet = new Set();
-            const currentYear = new Date().getFullYear().toString();
-            yearsSet.add(currentYear);
+        function openHistoryModal(type) {
+            currentModalType = type;
+            const modal = document.getElementById('historyModal');
+            const title = document.getElementById('modalTitle');
+            const icon = document.getElementById('modalHeaderIcon');
 
-            sales.forEach(s => {
-                if (s.date) yearsSet.add(s.date.split('-')[0]);
-            });
-            repairs.forEach(r => {
-                if (r.date) yearsSet.add(r.date.split('-')[0]);
-            });
-
-            const sortedYears = Array.from(yearsSet).sort().reverse();
-
-            const salesYearSelect = document.getElementById('filterSalesYear');
-            const repairsYearSelect = document.getElementById('filterRepairsYear');
-
-            let optionsHtml = '<option value="all">Todos os Anos</option>';
-            sortedYears.forEach(y => {
-                optionsHtml += `<option value="${y}">${y}</option>`;
-            });
-
-            salesYearSelect.innerHTML = optionsHtml;
-            repairsYearSelect.innerHTML = optionsHtml;
-
-            salesYearSelect.value = currentYear;
-            repairsYearSelect.value = currentYear;
-        }
-
-        // --- TOGGLE HISTÓRICO SANFONADO ---
-        function toggleHistory(type) {
-            const container = document.getElementById(`${type}HistoryContainer`);
-            const text = document.getElementById(`${type}HistoryText`);
-            
-            if (container.classList.contains('hidden')) {
-                container.classList.remove('hidden');
-                text.innerText = type === 'sales' ? 'Ocultar Histórico de Vendas' : 'Ocultar Histórico de Consertos';
+            if (type === 'sales') {
+                title.textContent = "Histórico de Vendas";
+                icon.className = "fa-solid fa-cash-register";
             } else {
-                container.classList.add('hidden');
-                text.innerText = type === 'sales' ? 'Ver Histórico de Vendas' : 'Ver Histórico de Consertos';
+                title.textContent = "Histórico de Consertos";
+                icon.className = "fa-solid fa-screwdriver-wrench";
             }
+
+            document.getElementById('modalFilterMonth').value = 'all';
+            document.getElementById('modalFilterYear').value = 'all';
+
+            renderModalTable();
+            modal.classList.remove('hidden');
         }
 
-        // --- MÓDULO DE VENDAS ---
-        function renderSales() {
-            const tbody = document.getElementById('salesTableBody');
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.add('hidden');
+        }
+
+        function renderModalTable() {
+            const monthFilter = document.getElementById('modalFilterMonth').value;
+            const yearFilter = document.getElementById('modalFilterYear').value;
+            const storageKey = currentModalType === 'sales' ? 'macmura_sales' : 'macmura_repairs';
+            let data = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+            let filtered = data.filter(item => {
+                const [year, month] = item.date.split('-');
+                const matchMonth = (monthFilter === 'all' || month === monthFilter);
+                const matchYear = (yearFilter === 'all' || year === yearFilter);
+                return matchMonth && matchYear;
+            });
+
+            const headersContainer = document.getElementById('modalTableHeaders');
+            const tbody = document.getElementById('modalTableBody');
             tbody.innerHTML = '';
 
-            const selectedMonth = document.getElementById('filterSalesMonth').value;
-            const selectedYear = document.getElementById('filterSalesYear').value;
-
-            let totalProdCost = 0;
-            let totalRepairSpent = 0;
-            let totalAmount = 0;
-            let totalProfit = 0;
-
-            sales.forEach((sale, index) => {
-                if (sale.date) {
-                    const [year, month] = sale.date.split('-');
-                    if (selectedMonth !== 'all' && month !== selectedMonth) return;
-                    if (selectedYear !== 'all' && year !== selectedYear) return;
-                } else if (selectedMonth !== 'all' || selectedYear !== 'all') {
-                    return;
-                }
-
-                const prodCost = Number(sale.productCost || 0);
-                const repSpent = Number(sale.repairSpent || 0);
-                const amount = Number(sale.amount || 0);
-                const profit = amount - (prodCost + repSpent);
-
-                totalProdCost += prodCost;
-                totalRepairSpent += repSpent;
-                totalAmount += amount;
-                totalProfit += profit;
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
-                        <td class="p-4 font-mono text-xs text-slate-500">${sale.date || '-'}</td>
-                        <td class="p-4 font-medium"><span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs">${sale.payment || 'Pix'}</span></td>
-                        <td class="p-4 text-right text-red-400 font-medium">${formatMoney(prodCost)}</td>
-                        <td class="p-4 text-right text-red-400 font-medium">${formatMoney(repSpent)}</td>
-                        <td class="p-4 text-right text-brand-500 font-bold">${formatMoney(amount)}</td>
-                        <td class="p-4 text-right text-emerald-400 font-bold">${formatMoney(profit)}</td>
-                        <td class="p-4 text-center">
-                            <button onclick="deleteRecord('sale', ${index})" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition flex items-center justify-center mx-auto text-xs">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
+            if (currentModalType === 'sales') {
+                headersContainer.innerHTML = `
+                    <th class="p-3.5 font-semibold">Data</th>
+                    <th class="p-3.5 font-semibold">Pagamento</th>
+                    <th class="p-3.5 font-semibold text-right">Valor Produto</th>
+                    <th class="p-3.5 font-semibold text-right">Gasto Peças</th>
+                    <th class="p-3.5 font-semibold text-right">Valor Venda</th>
+                    <th class="p-3.5 font-semibold text-right">Lucro</th>
+                    <th class="p-3.5 font-semibold text-center">Ações</th>
                 `;
-            });
+            } else {
+                headersContainer.innerHTML = `
+                    <th class="p-3.5 font-semibold">Data</th>
+                    <th class="p-3.5 font-semibold">Identificação</th>
+                    <th class="p-3.5 font-semibold">Status</th>
+                    <th class="p-3.5 font-semibold text-right">Valor Conserto</th>
+                    <th class="p-3.5 font-semibold text-right">Gasto Peça</th>
+                    <th class="p-3.5 font-semibold text-right">Lucro</th>
+                    <th class="p-3.5 font-semibold text-center">Ações</th>
+                `;
+            }
 
-            document.getElementById('totalSalesProductCost').innerText = formatMoney(totalProdCost);
-            document.getElementById('totalSalesRepairSpent').innerText = formatMoney(totalRepairSpent);
-            document.getElementById('totalSalesAmount').innerText = formatMoney(totalAmount);
-            document.getElementById('totalSalesProfit').innerText = formatMoney(totalProfit);
-        }
-
-        function saveSaleRecord() {
-            const productCost = document.getElementById('fieldProductCost').value;
-            const repairSpent = document.getElementById('fieldRepairSpent').value;
-            const amount = document.getElementById('fieldSaleAmount').value;
-            const date = document.getElementById('fieldSaleDate').value;
-            const payment = document.getElementById('fieldSalePayment').value;
-
-            if (!amount) {
-                alert('Por favor, informe o valor da venda.');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">Nenhum registro encontrado.</td></tr>`;
                 return;
             }
 
-            sales.unshift({ productCost, repairSpent, amount, date, payment });
-            localStorage.setItem('macmura_sales', JSON.stringify(sales));
-            populateYearFilters();
-            renderSales();
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-100 dark:hover:bg-slate-800/40 transition";
+
+                if (currentModalType === 'sales') {
+                    const profit = item.saleAmount - (item.productCost + item.repairSpent);
+                    tr.innerHTML = `
+                        <td class="p-3.5">${item.date.split('-').reverse().join('/')}</td>
+                        <td class="p-3.5"><span class="px-2 py-1 bg-slate-200 dark:bg-slate-800 rounded-lg text-xs font-medium">${item.payment}</span></td>
+                        <td class="p-3.5 text-right text-red-400">R$ ${item.productCost.toFixed(2)}</td>
+                        <td class="p-3.5 text-right text-red-400">R$ ${item.repairSpent.toFixed(2)}</td>
+                        <td class="p-3.5 text-right font-semibold text-brand-500">R$ ${item.saleAmount.toFixed(2)}</td>
+                        <td class="p-3.5 text-right font-bold text-emerald-400">R$ ${profit.toFixed(2)}</td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteModalItem(${item.id})" class="p-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                } else {
+                    const profit = item.amount - item.cost;
+                    let statusColor = "bg-amber-500/10 text-amber-400";
+                    if(item.status === 'Concluído') statusColor = "bg-brand-500/10 text-brand-500";
+                    if(item.status === 'Aguardando Peça') statusColor = "bg-blue-500/10 text-blue-400";
+
+                    tr.innerHTML = `
+                        <td class="p-3.5">${item.date.split('-').reverse().join('/')}</td>
+                        <td class="p-3.5 font-medium">${item.client} <br><span class="text-xs text-slate-400">${item.details}</span></td>
+                        <td class="p-3.5"><span class="px-2 py-1 ${statusColor} rounded-lg text-xs font-medium">${item.status}</span></td>
+                        <td class="p-3.5 text-right font-semibold text-brand-500">R$ ${item.amount.toFixed(2)}</td>
+                        <td class="p-3.5 text-right text-red-400">R$ ${item.cost.toFixed(2)}</td>
+                        <td class="p-3.5 text-right font-bold text-emerald-400">R$ ${profit.toFixed(2)}</td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteModalItem(${item.id})" class="p-1.5 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteModalItem(id) {
+            if(confirm('Deseja realmente excluir este registro?')) {
+                const storageKey = currentModalType === 'sales' ? 'macmura_sales' : 'macmura_repairs';
+                let data = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                data = data.filter(item => item.id !== id);
+                localStorage.setItem(storageKey, JSON.stringify(data));
+                
+                renderModalTable();
+                renderSalesSummary();
+                renderRepairsSummary();
+            }
+        }
+
+        // --- EXPORTAÇÃO CSV E PDF ---
+        function exportToCSV() {
+            const storageKey = currentModalType === 'sales' ? 'macmura_sales' : 'macmura_repairs';
+            let data = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            
+            if(data.length === 0) {
+                alert('Não há dados para exportar.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            if (currentModalType === 'sales') {
+                csvContent += "Data,Pagamento,Valor Produto,Gasto Pecas,Valor Venda,Lucro\n";
+                data.forEach(item => {
+                    const profit = item.saleAmount - (item.productCost + item.repairSpent);
+                    csvContent += `"${item.date}","${item.payment}",${item.productCost},${item.repairSpent},${item.saleAmount},${profit}\n`;
+                });
+            } else {
+                csvContent += "Data,Identificacao,Detalhes,Status,Valor Conserto,Gasto Peca,Lucro\n";
+                data.forEach(item => {
+                    const profit = item.amount - item.cost;
+                    csvContent += `"${item.date}","${item.client}","${item.details}","${item.status}",${item.amount},${item.cost},${profit}\n`;
+                });
+            }
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `relatorio_${currentModalType}_macmura.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportToPDF() {
+            window.print();
+        }
+
+        // --- VENDAS ---
+        let salesData = JSON.parse(localStorage.getItem('macmura_sales') || '[]');
+
+        function saveSaleRecord() {
+            const productCost = parseFloat(document.getElementById('fieldProductCost').value) || 0;
+            const repairSpent = parseFloat(document.getElementById('fieldRepairSpent').value) || 0;
+            const saleAmount = parseFloat(document.getElementById('fieldSaleAmount').value) || 0;
+            const payment = document.getElementById('fieldSalePayment').value;
+            const date = document.getElementById('fieldSaleDate').value;
+
+            if (!date || saleAmount <= 0) {
+                alert('Preencha a data e o valor de venda corretamente.');
+                return;
+            }
+
+            const record = { id: Date.now(), productCost, repairSpent, saleAmount, payment, date };
+            salesData.push(record);
+            localStorage.setItem('macmura_sales', JSON.stringify(salesData));
 
             document.getElementById('fieldProductCost').value = '';
             document.getElementById('fieldRepairSpent').value = '';
             document.getElementById('fieldSaleAmount').value = '';
+
+            renderSalesSummary();
         }
 
-        // --- MÓDULO DE CONSERTOS ---
-        function renderRepairs() {
-            const tbody = document.getElementById('repairsTableBody');
-            tbody.innerHTML = '';
+        function renderSalesSummary() {
+            salesData = JSON.parse(localStorage.getItem('macmura_sales') || '[]');
+            let tProdCost = 0, tRepSpent = 0, tAmount = 0, tProfit = 0;
 
-            const selectedMonth = document.getElementById('filterRepairsMonth').value;
-            const selectedYear = document.getElementById('filterRepairsYear').value;
-
-            let totalAmount = 0;
-            let totalCost = 0;
-            let totalProfit = 0;
-
-            repairs.forEach((repair, index) => {
-                if (repair.date) {
-                    const [year, month] = repair.date.split('-');
-                    if (selectedMonth !== 'all' && month !== selectedMonth) return;
-                    if (selectedYear !== 'all' && year !== selectedYear) return;
-                } else if (selectedMonth !== 'all' || selectedYear !== 'all') {
-                    return;
-                }
-
-                const amount = Number(repair.amount || 0);
-                const cost = Number(repair.cost || 0);
-                const profit = amount - cost;
-
-                totalAmount += amount;
-                totalCost += cost;
-                totalProfit += profit;
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
-                        <td class="p-4 font-mono text-xs text-slate-500">${repair.date || '-'}</td>
-                        <td class="p-4">
-                            <div class="font-bold">${repair.client || ''}</div>
-                            <div class="text-xs text-slate-400">${repair.details || ''}</div>
-                        </td>
-                        <td class="p-4"><span class="px-2 py-1 bg-brand-500/10 text-brand-500 rounded-lg text-xs font-medium">${repair.status || 'Concluído'}</span></td>
-                        <td class="p-4 text-right text-brand-500 font-bold">${formatMoney(amount)}</td>
-                        <td class="p-4 text-right text-red-400 font-medium">${formatMoney(cost)}</td>
-                        <td class="p-4 text-center">
-                            <button onclick="deleteRecord('repair', ${index})" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition flex items-center justify-center mx-auto text-xs">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+            salesData.forEach(item => {
+                tProdCost += item.productCost;
+                tRepSpent += item.repairSpent;
+                tAmount += item.saleAmount;
+                tProfit += (item.saleAmount - (item.productCost + item.repairSpent));
             });
 
-            document.getElementById('totalRepairsAmount').innerText = formatMoney(totalAmount);
-            document.getElementById('totalRepairsCost').innerText = formatMoney(totalCost);
-            document.getElementById('totalRepairsProfit').innerText = formatMoney(totalProfit);
+            document.getElementById('totalSalesProductCost').textContent = `R$ ${tProdCost.toFixed(2)}`;
+            document.getElementById('totalSalesRepairSpent').textContent = `R$ ${tRepSpent.toFixed(2)}`;
+            document.getElementById('totalSalesAmount').textContent = `R$ ${tAmount.toFixed(2)}`;
+            document.getElementById('totalSalesProfit').textContent = `R$ ${tProfit.toFixed(2)}`;
         }
+
+        // --- CONSERTOS ---
+        let repairsData = JSON.parse(localStorage.getItem('macmura_repairs') || '[]');
 
         function saveRepairRecord() {
             const client = document.getElementById('fieldRepairClient').value;
             const details = document.getElementById('fieldRepairDetails').value;
-            const amount = document.getElementById('fieldRepairAmount').value;
-            const cost = document.getElementById('fieldRepairCost').value;
-            const date = document.getElementById('fieldRepairDate').value;
+            const amount = parseFloat(document.getElementById('fieldRepairAmount').value) || 0;
+            const cost = parseFloat(document.getElementById('fieldRepairCost').value) || 0;
             const status = document.getElementById('fieldRepairStatus').value;
+            const date = document.getElementById('fieldRepairDate').value;
 
-            if (!client || !amount) {
-                alert('Preencha pelo menos o nome do cliente e o valor do conserto.');
+            if (!date || amount <= 0) {
+                alert('Preencha a data e o valor do conserto corretamente.');
                 return;
             }
 
-            repairs.unshift({ client, details, amount, cost, date, status });
-            localStorage.setItem('macmura_repairs', JSON.stringify(repairs));
-            populateYearFilters();
-            renderRepairs();
+            const record = { id: Date.now(), client, details, amount, cost, status, date };
+            repairsData.push(record);
+            localStorage.setItem('macmura_repairs', JSON.stringify(repairsData));
 
             document.getElementById('fieldRepairClient').value = '';
             document.getElementById('fieldRepairDetails').value = '';
             document.getElementById('fieldRepairAmount').value = '';
             document.getElementById('fieldRepairCost').value = '';
+
+            renderRepairsSummary();
         }
 
-        function deleteRecord(type, index) {
-            if(confirm('Tem certeza que deseja excluir este registro?')) {
-                if(type === 'sale') {
-                    sales.splice(index, 1);
-                    localStorage.setItem('macmura_sales', JSON.stringify(sales));
-                    renderSales();
-                } else if(type === 'repair') {
-                    repairs.splice(index, 1);
-                    localStorage.setItem('macmura_repairs', JSON.stringify(repairs));
-                    renderRepairs();
-                }
-            }
+        function renderRepairsSummary() {
+            repairsData = JSON.parse(localStorage.getItem('macmura_repairs') || '[]');
+            let tAmount = 0, tCost = 0, tProfit = 0;
+
+            repairsData.forEach(item => {
+                tAmount += item.amount;
+                tCost += item.cost;
+                tProfit += (item.amount - item.cost);
+            });
+
+            document.getElementById('totalRepairsAmount').textContent = `R$ ${tAmount.toFixed(2)}`;
+            document.getElementById('totalRepairsCost').textContent = `R$ ${tCost.toFixed(2)}`;
+            document.getElementById('totalRepairsProfit').textContent = `R$ ${tProfit.toFixed(2)}`;
         }
 
         // --- CALCULADORA ---
-        let calcExpression = '';
+        let calcExpression = "";
 
         function calcAppend(val) {
-            if (calcExpression === '0' && val !== '.') {
-                calcExpression = val;
-            } else {
-                calcExpression += val;
-            }
-            updateCalcDisplay();
+            calcExpression += val;
+            document.getElementById('calcDisplay').textContent = calcExpression;
         }
 
         function calcClear() {
-            calcExpression = '';
-            document.getElementById('calcHistory').innerText = '';
-            updateCalcDisplay();
+            calcExpression = "";
+            document.getElementById('calcDisplay').textContent = "0";
+            document.getElementById('calcHistory').textContent = "";
         }
 
         function calcBackspace() {
             calcExpression = calcExpression.slice(0, -1);
-            updateCalcDisplay();
-        }
-
-        function updateCalcDisplay() {
-            document.getElementById('calcDisplay').innerText = calcExpression || '0';
+            document.getElementById('calcDisplay').textContent = calcExpression || "0";
         }
 
         function calcEvaluate() {
             try {
-                let expr = calcExpression.replace(/%/g, '/100');
-                let result = eval(expr);
-                document.getElementById('calcHistory').innerText = calcExpression + ' =';
-                calcExpression = String(result);
-                updateCalcDisplay();
+                let evalString = calcExpression.replace(/×/g, '*').replace(/÷/g, '/');
+                let result = eval(evalString);
+                document.getElementById('calcHistory').textContent = calcExpression + " =";
+                document.getElementById('calcDisplay').textContent = result;
+                calcExpression = result.toString();
             } catch (e) {
-                document.getElementById('calcDisplay').innerText = 'Erro';
-                calcExpression = '';
+                document.getElementById('calcDisplay').textContent = "Erro";
+                calcExpression = "";
             }
         }
 
-        // --- AJUSTES E SEGURANÇA ---
-        function changePin() {
+        // --- AJUSTES ---
+        function updatePin() {
             const newPin = document.getElementById('newPinInput').value;
-            if(newPin.length !== 4 || isNaN(newPin)) {
-                alert('O PIN deve conter exatamente 4 dígitos numéricos.');
-                return;
+            if(newPin.length === 4 && !isNaN(newPin)) {
+                currentPin = newPin;
+                localStorage.setItem('macmura_pin', currentPin);
+                alert('PIN alterado com sucesso!');
+                document.getElementById('newPinInput').value = '';
+            } else {
+                alert('O PIN deve conter exatamente 4 números.');
             }
-            pinCode = newPin;
-            localStorage.setItem('macmura_pin', pinCode);
-            document.getElementById('newPinInput').value = '';
-            alert('PIN alterado com sucesso!');
         }
 
-        function exportData() {
-            const data = { sales, repairs, pinCode };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `backup_macmura_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-        }
-
-        function resetData() {
-            if(confirm('ATENÇÃO: Todos os dados de vendas e consertos serão apagados permanentemente. Deseja continuar?')) {
-                localStorage.clear();
-                sales = [];
-                repairs = [];
-                renderSales();
-                renderRepairs();
-                alert('Dados apagados com sucesso.');
-                lockApp();
+        function clearAllData() {
+            if(confirm('Tem certeza que deseja apagar todos os dados de vendas e consertos? Essa ação não pode ser desfeita.')) {
+                localStorage.removeItem('macmura_sales');
+                localStorage.removeItem('macmura_repairs');
+                renderSalesSummary();
+                renderRepairsSummary();
+                alert('Todos os dados foram apagados.');
             }
         }
     </script>
